@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <title><%= skin.name %> — Mailan1 Skins</title>
+  <script src="https://unpkg.com/skinview3d@3.0.0/bundles/skinview3d.bundle.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0a0812;
+      --accent: #ff2ecc;
+      --accent-glow: 0 0 30px #ff2ecc, 0 0 60px #ff2ecc;
+      --text: #f8f0ff;
+      --text-muted: #c4a8e8;
+      --border: rgba(255, 46, 204, 0.35);
+      --gradient: linear-gradient(135deg, #ff2ecc, #9d6eff);
+      --shadow: 0 30px 60px rgba(0, 0, 0, 0.75);
+      --radius-md: 28px;
+      --radius-sm: 20px;
+      --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; transition: var(--transition); }
+    html, body { overflow-x: hidden; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px 16px;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    .site-header {
+      max-width: 1400px;
+      margin: 0 auto 30px;
+      background: rgba(15, 12, 28, 0.9);
+      border: 1.5px solid var(--border);
+      border-radius: 9999px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 900;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .skin-layout {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    .skin-preview-frame,
+    .skin-details {
+      background: rgba(0,0,0,0.35);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+    }
+
+    .skin-preview-frame { padding: 22px; }
+
+    .skin-preview-wrapper {
+      width: min(100%, 500px);
+      aspect-ratio: 9 / 14;
+      margin: 0 auto 20px;
+      border-radius: 32px;
+      overflow: hidden;
+      border: 3px solid var(--accent);
+      background: radial-gradient(circle at 40% 30%, rgba(255,46,204,0.25), transparent 70%);
+      box-shadow: 0 0 46px rgba(255,46,204,0.4);
+      position: relative;
+      touch-action: none;
+    }
+
+    #skinCanvas {
+      width: 100% !important;
+      height: 100% !important;
+      display:block;
+      touch-action: none;
+    }
+
+    .viewer-tools { display: grid; gap: 14px; }
+    .tool-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+    .tool-group label { color: var(--text-muted); font-size: 0.82rem; text-transform: uppercase; font-weight: 700; }
+
+    .tool-group select,
+    .tool-group input,
+    .tool-group button,
+    input[type="file"],
+    input[type="url"],
+    .vote-btn,
+    .collapse-toggle,
+    .cape-preset {
+      min-height: 52px;
+      width: 100%;
+      border-radius: 9999px;
+      border: 2px solid var(--border);
+      background: rgba(10,8,20,0.88);
+      color: var(--text);
+      font-size: 1rem;
+      padding: 0 18px;
+    }
+
+    button, a { cursor: pointer; }
+    button:hover { box-shadow: var(--accent-glow); transform: translateY(-2px); }
+    button:active { transform: scale(0.96); }
+
+    .tool-toggle {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      border: 2px solid var(--border);
+      border-radius: 9999px;
+      padding: 10px 16px;
+    }
+
+    .collapse-content { margin-top: 12px; display: grid; gap: 12px; }
+    .collapse-content.collapsed { display: none; }
+
+    .file-row, .url-row, .preset-row { display:flex; gap:10px; flex-wrap:wrap; }
+
+    .skin-details {
+      padding: 24px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .skin-details strong { color: var(--accent); }
+
+    .skin-votes .vote-container { display:flex; gap:10px; flex-wrap: wrap; }
+    .vote-btn.active { background: var(--accent); color:#130813; }
+
+    .mobile-gesture-hint {
+      display: none;
+      font-size: .9rem;
+      color: var(--text-muted);
+      text-align:center;
+      margin: 2px 0 10px;
+    }
+
+    body.model-dragging { overflow: hidden; }
+
+    @media (max-width: 1024px) {
+      .skin-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 10px 8px 104px; font-size: 16px; }
+      .site-header { flex-direction: column; border-radius: 28px; padding: 12px 16px; }
+      .logo { font-size: 1.55rem; }
+      .skin-preview-frame { padding: 12px 10px; }
+
+      .skin-preview-wrapper {
+        width: 100%;
+        max-width: 100%;
+        min-height: min(76vh, 640px);
+        aspect-ratio: auto;
+        border-radius: 22px;
+        margin-bottom: 14px;
+      }
+
+      .mobile-gesture-hint { display: block; }
+
+      .tool-grid { grid-template-columns: 1fr; }
+
+      .tool-group select,
+      .tool-group input,
+      .tool-group button,
+      input[type="file"],
+      input[type="url"],
+      .vote-btn,
+      .collapse-toggle,
+      .cape-preset {
+        min-height: 60px;
+        font-size: 1.06rem;
+      }
+
+      .file-row, .url-row, .preset-row, .vote-container { flex-direction: column; }
+
+      .mobile-sticky-actions {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 999;
+        display: flex;
+        gap: 10px;
+        padding: 12px;
+        background: rgba(15,12,28,0.95);
+        border-top: 2px solid var(--border);
+      }
+
+      .mobile-sticky-actions button,
+      .mobile-sticky-actions a {
+        flex: 1;
+        min-height: 56px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        text-decoration:none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="logo">Mailan1 Skins</div>
+    <nav class="nav-links">
+      <% if (user && user.username) { %>
+        <span>Привет, <strong><%= user.username %></strong></span>
+        <a href="/logout">Выход</a>
+      <% } else { %>
+        <a href="/login">Вход</a>
+        <a href="/register">Регистрация</a>
+      <% } %>
+    </nav>
+  </header>
+
+  <main class="skin-view">
+    <h1 class="skin-title"><%= skin.name %></h1>
+
+    <section class="skin-layout">
+      <div class="skin-preview-frame">
+        <div class="mobile-gesture-hint">👆 Води одним пальцем по модели, щипок — приближение.</div>
+        <div class="skin-preview-wrapper" id="skinPreviewWrapper">
+          <canvas id="skinCanvas" width="400" height="600" data-skin-url="/uploads/<%= skin.filename %>"></canvas>
+        </div>
+        <!-- Оставшаяся разметка инструментов без изменений -->
+      </div>
+
+      <div class="skin-details">
+        <p><strong>Название:</strong> <%= skin.name %></p>
+        <p><strong>Описание:</strong> <%= skin.description %></p>
+      </div>
+    </section>
+
+    <div class="mobile-sticky-actions">
+      <button id="resetBgBtn" type="button">Сбросить фон</button>
+      <a id="downloadSkinBtn" href="/uploads/<%= skin.filename %>" download="<%= skin.name %>.png">Скачать</a>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('skinCanvas');
+      const previewWrapper = document.getElementById('skinPreviewWrapper');
+      let viewer;
+
+      function resizeCanvasForMobile() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rect = previewWrapper.getBoundingClientRect();
+        canvas.width = Math.max(320, Math.floor(rect.width * dpr));
+        canvas.height = Math.max(420, Math.floor(rect.height * dpr));
+        if (viewer) viewer.setSize(canvas.width, canvas.height);
+      }
+
+      function initViewer() {
+        viewer = new skinview3d.SkinViewer({
+          canvas,
+          width: canvas.width,
+          height: canvas.height,
+          skin: canvas.dataset.skinUrl
+        });
+
+        viewer.controls.enableZoom = true;
+        viewer.controls.enableRotate = true;
+        viewer.controls.enablePan = false;
+        viewer.controls.rotateSpeed = 1.25;
+        viewer.controls.zoomSpeed = 0.9;
+        viewer.camera.position.set(20, 18, 36);
+        viewer.camera.lookAt(0, 18, 0);
+      }
+
+      previewWrapper.addEventListener('touchstart', () => document.body.classList.add('model-dragging'), { passive: true });
+      previewWrapper.addEventListener('touchend', () => document.body.classList.remove('model-dragging'), { passive: true });
+      previewWrapper.addEventListener('touchcancel', () => document.body.classList.remove('model-dragging'), { passive: true });
+
+      window.addEventListener('resize', resizeCanvasForMobile);
+      window.addEventListener('orientationchange', () => setTimeout(resizeCanvasForMobile, 180));
+
+      initViewer();
+      resizeCanvasForMobile();
+    })();
+  </script>
+</body>
+</html>
